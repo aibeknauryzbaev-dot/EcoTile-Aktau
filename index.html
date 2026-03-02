@@ -1,0 +1,966 @@
+<!--
+=============================================================================
+EcoTile Aktau - Landing Page
+=============================================================================
+
+НҰСҚАУЛЫҚ:
+1. Қалай іске қосу керек: 
+   Осы файлды компьютерде "index.html" деген атпен сақтап, кез келген браузермен (Chrome, Safari, Edge) ашыңыз.
+
+2. Google Apps Script WebApp URL қайда қою керек:
+   Файлдың ең төменгі жағындағы `<script>` тегінің ішінде `const SHEET_WEBAPP_URL = "";` деген жол бар. 
+   Сол жерге Google Apps Script арқылы алған өзіңіздің Web App URL сілтемеңізді қойыңыз. 
+   (Егер URL бос болса, деректер браузердің localStorage жадында сақталады - демо үшін өте ыңғайлы).
+
+3. Тегін хостингке қою (Netlify / GitHub Pages):
+   - Netlify (өте оңай): https://app.netlify.com/drop сайтына кіріп, осы `index.html` файлы бар буманы (папканы) сүйреп апарып тастаңыз.
+   - GitHub Pages: GitHub-та жаңа репозиторий ашып, осы файлды жүктеп, Settings -> Pages бөлімінен main бұтағын (branch) қосыңыз.
+
+=============================================================================
+-->
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoTile Aktau | Пластикті құндылыққа айналдырамыз</title>
+    <meta name="description" content="EcoTile Aktau - қайта өңделген пластиктен жасалған эко-плиткалар мен архитектуралық элементтер. Маңғыстаудың экологиясын бірге жақсартайық!">
+    
+    <style>
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --bg-dark: #0b1120;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-green-hover: #059669;
+            --accent-blue: #3b82f6;
+            --gradient-primary: linear-gradient(135deg, var(--accent-green), var(--accent-blue));
+            --border-color: #334155;
+            --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3, h4 {
+            line-height: 1.2;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        /* --- BUTTONS --- */
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: #fff;
+            box-shadow: 0 4px 14px 0 rgba(16, 185, 129, 0.39);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent-green);
+            color: #fff;
+        }
+
+        /* --- HEADER & NAVIGATION --- */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 1rem 5%;
+            background: rgba(11, 17, 32, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo span {
+            color: var(--accent-green);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        nav a {
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: var(--transition);
+        }
+
+        nav a:hover {
+            color: var(--accent-green);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background-color: var(--text-main);
+            transition: var(--transition);
+            border-radius: 3px;
+        }
+
+        /* --- LAYOUT UTILS --- */
+        section {
+            padding: 6rem 5%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-card);
+            border: 1px solid var(--border-color);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-green);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+        }
+
+        /* --- HERO SECTION --- */
+        #hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.15) 0%, rgba(11, 17, 32, 1) 70%);
+            padding-top: 80px;
+        }
+
+        .hero-content {
+            max-width: 800px;
+        }
+
+        .hero-content h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        /* --- TIMELINE (Іске асыру жоспары) --- */
+        .timeline {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .timeline::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background-color: var(--accent-green);
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            margin-left: -1px;
+        }
+
+        .timeline-item {
+            padding: 10px 40px;
+            position: relative;
+            background-color: inherit;
+            width: 50%;
+        }
+
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            right: -8px;
+            background-color: var(--bg-dark);
+            border: 4px solid var(--accent-green);
+            top: 15px;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .left {
+            left: 0;
+        }
+
+        .right {
+            left: 50%;
+        }
+
+        .right::after {
+            left: -8px;
+        }
+
+        .timeline-content {
+            padding: 1.5rem;
+            background-color: var(--bg-card);
+            position: relative;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* --- BUDGET & KPI CARDS --- */
+        .stat-card {
+            text-align: center;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+        }
+
+        .budget-amount {
+            font-size: 2.5rem;
+            color: var(--accent-green);
+            font-weight: 800;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        /* --- CONTACT FORM --- */
+        #contact {
+            background: rgba(30, 41, 59, 0.3);
+            border-radius: 20px;
+            margin-bottom: 4rem;
+            padding: 4rem 5%;
+        }
+
+        .contact-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .contact-info h3 {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .contact-info p {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-copy {
+            background-color: #25D366; /* WhatsApp color */
+            color: white;
+            border: none;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-copy:hover {
+            background-color: #128C7E;
+            transform: translateY(-2px);
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background-color: var(--bg-card);
+            padding: 3rem 5% 1.5rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .footer-content {
+            margin-bottom: 2rem;
+        }
+
+        .nomination {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--accent-green);
+            color: var(--accent-green);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .copyright {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+
+        /* --- TOAST NOTIFICATION --- */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--accent-green);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 2000;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* --- RESPONSIVE DESIGN --- */
+        @media screen and (max-width: 992px) {
+            .contact-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .hero-content h1 {
+                font-size: 2.5rem;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+
+            .timeline::after {
+                left: 31px;
+            }
+
+            .timeline-item {
+                width: 100%;
+                padding-left: 70px;
+                padding-right: 25px;
+            }
+
+            .timeline-item::after {
+                left: 23px;
+            }
+
+            .left::after, .right::after {
+                left: 23px;
+            }
+
+            .right {
+                left: 0%;
+            }
+
+            /* Burger Menu */
+            .hamburger {
+                display: flex;
+            }
+
+            nav ul {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                width: 100%;
+                height: calc(100vh - 70px);
+                background-color: var(--bg-dark);
+                flex-direction: column;
+                justify-content: center;
+                gap: 2rem;
+                transition: 0.4s ease-in-out;
+            }
+
+            nav ul.active {
+                left: 0;
+            }
+
+            nav ul li {
+                font-size: 1.2rem;
+            }
+
+            .hamburger.active span:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active span:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <a href="#hero" class="logo">EcoTile <span>Aktau</span></a>
+        <nav>
+            <ul id="nav-links">
+                <li><a href="#about">Жоба туралы</a></li>
+                <li><a href="#products">Өнімдер</a></li>
+                <li><a href="#innovation">Инновация</a></li>
+                <li><a href="#plan">Жоспар</a></li>
+                <li><a href="#contact" class="btn btn-primary" style="padding: 0.5rem 1rem;">Серіктес болу</a></li>
+            </ul>
+        </nav>
+        <div class="hamburger" id="hamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </header>
+
+    <main>
+        <!-- HERO SECTION -->
+        <section id="hero">
+            <div class="hero-content">
+                <h1>Пластикті пайдалы өнімге айналдырамыз</h1>
+                <p>Ақтау қаласы мен Маңғыстау облысының экологиясын жақсарту мақсатында қайта өңделген пластиктен берік, эстетикалық эко-плиткалар мен архитектуралық формалар өндіреміз.</p>
+                <div class="hero-buttons">
+                    <a href="#contact" class="btn btn-primary">Серіктес болу</a>
+                    <a href="#about" class="btn btn-outline">Көбірек білу</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about">
+            <h2>Жоба туралы</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">🌍</div>
+                    <h3>Экологиялық мәселе</h3>
+                    <p>Ақтау қаласындағы пластик қалдықтарының көбеюі және оларды кәдеге жарату инфрақұрылымының жетіспеушілігі. Пластик табиғатта жүздеген жылдар бойы шірімей жатады.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">💡</div>
+                    <h3>Біздің шешім</h3>
+                    <p>Пластик қалдықтарын (HDPE, PP) құммен немесе басқа қоспалармен араластырып, термопрестеу арқылы берік құрылыс материалдарын жасап шығару.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🎯</div>
+                    <h3>Мақсатты аудитория</h3>
+                    <p>Мектептер, тұрғын үй кешендері, кафелер, саябақтар және қаланы абаттандыруға үлес қосқысы келетін кез келген ұйымдар мен тұрғындар.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRODUCTS SECTION -->
+        <section id="products">
+            <h2>Біздің өнімдер</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">🧱</div>
+                    <h3>Эко-плитка</h3>
+                    <p>Аулаларға, тротуарларға және жаяу жүргіншілер жолына арналған. Кәдімгі бетон плиткаларға қарағанда жеңіл әрі сынуға бейім емес. Түрлі түстерде шығарылады.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🚧</div>
+                    <h3>Бордюрлер</h3>
+                    <p>Жол шеттерін, гүлзарларды және балалар алаңдарын шектеуге арналған берік әрі қауіпсіз бордюрлер. Ылғалды сіңірмейді, аязда жарылмайды.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">🪑</div>
+                    <h3>Шағын архитектура</h3>
+                    <p>Саябақ орындықтары, гүл құмыралары, қоқыс жәшіктері сияқты шағын элементтер. Қалалық ортаға заманауи және экологиялық таза көрініс береді.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- INNOVATION SECTION -->
+        <section id="innovation">
+            <h2>Жоба инновациясы</h2>
+            <div class="grid">
+                <div class="card">
+                    <div class="card-icon">🌊</div>
+                    <h3>Теңіз климатына бейімделу</h3>
+                    <p>Біздің өнімдер Каспий теңізінің ылғалды әрі тұзды климатына төтеп беретіндей арнайы рецептурамен жасалады. Металл сияқты тот баспайды, ағаш сияқты шірімейді.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⭐</div>
+                    <h3>Эко-балл жүйесі</h3>
+                    <p>Серіктестеріміз (мектептер, ТК) өткізген пластик көлеміне қарай "эко-балл" жинайды. Бұл балдарды дайын өнімге немесе жеңілдіктерге айырбастауға болады.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">📊</div>
+                    <h3>Ашық есеп</h3>
+                    <p>Әрбір орнатылған нысанда QR-код болады. Оны сканерлеу арқылы "Бұл орындыққа қанша келі пластик кеткенін" және оны кімдер жинағанын көруге болады.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESEARCH & TESTING -->
+        <section id="research" style="background-color: rgba(30, 41, 59, 0.3); border-radius: 20px; padding: 4rem 5%; margin: 2rem auto;">
+            <h2>Зерттеу және Тест</h2>
+            <p style="text-align: center; max-width: 800px; margin: 0 auto 3rem;">Өнім сапасын қамтамасыз ету үшін кешенді зертханалық және далалық сынақтар жүргізіледі.</p>
+            <div class="grid">
+                <div class="card">
+                    <h4>💪 Беріктік сынағы</h4>
+                    <p>Механикалық соққыларға және салмақ түсуіне төзімділігін тексеру. Бетоннан 2 есе берік.</p>
+                </div>
+                <div class="card">
+                    <h4>💧 Ылғал мен Тұз</h4>
+                    <p>Ақтаудың тұзды ауасы мен ылғалына реакциясын тексеру. Су сіңіру көрсеткіші 0%-ға жақын.</p>
+                </div>
+                <div class="card">
+                    <h4>☀️ УК-сәулелер</h4>
+                    <p>Күннің ультракүлгін сәулелерінің әсерінен түсін жоғалтпауын және сынғыш болмауын қамтамасыз ету.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- IMPLEMENTATION PLAN -->
+        <section id="plan">
+            <h2>Іске асыру жоспары</h2>
+            <div class="timeline">
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <h3>1-кезең: Дайындық</h3>
+                        <p>Нарықты зерттеу, шикізат жинау нүктелерін анықтау, алғашқы серіктестермен келісім жасау. Дизайн мен рецептураны бекіту.</p>
+                    </div>
+                </div>
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <h3>2-кезең: Пилот</h3>
+                        <p>Шағын жабдық (шредер, термопресс) сатып алу. Алғашқы 100 м² эко-плитка немесе 5 орындық шығарып, Ақтау қаласының бір ауласында орнату.</p>
+                    </div>
+                </div>
+                <div class="timeline-item left">
+                    <div class="timeline-content">
+                        <h3>3-кезең: Өндіріс</h3>
+                        <p>Өндіріс көлемін ұлғайту, Эко-балл жүйесін іске қосу. Мектептер мен тұрғын үй кешендерін жаппай тарту. Өнім ассортиментін кеңейту.</p>
+                    </div>
+                </div>
+                <div class="timeline-item right">
+                    <div class="timeline-content">
+                        <h3>4-кезең: Масштабтау</h3>
+                        <p>Маңғыстау облысының басқа аудандарына шығу. Мемлекеттік тендерлерге қатысу, ірі B2B тапсырыстарды орындау.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- KPI / IMPACT -->
+        <section id="kpi">
+            <h2>Күтілетін нәтиже (KPI)</h2>
+            <div class="grid">
+                <div class="card stat-card">
+                    <div class="stat-number">500+</div>
+                    <h3>кг пластик / айына</h3>
+                    <p>Полигонға кетпей, қайта өңдеуге жіберілетін қалдық көлемі.</p>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-number">100</div>
+                    <h3>м² өнім / айына</h3>
+                    <p>Пилоттық кезеңдегі өндірілетін эко-плитка немесе оған тең шағын архитектура.</p>
+                </div>
+                <div class="card stat-card">
+                    <div class="stat-number">5+</div>
+                    <h3>Тұрақты серіктес</h3>
+                    <p>Пластик жинауға және өнімді қолдануға атсалысатын ұйымдар.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BUDGET -->
+        <section id="budget">
+            <h2>Пилоттық жоба бюджеті</h2>
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                <p style="text-align: center; font-size: 1.1rem;">Алғашқы өндіріс желісін іске қосуға (шредер, экструдер/пресс, қалыптар) және маркетингке қажетті шамамен сома:</p>
+                <div class="budget-amount">~ 2 500 000 ₸</div>
+                <ul style="list-style: none; color: var(--text-muted); padding-left: 0;">
+                    <li style="margin-bottom: 0.5rem;">✅ Пластик ұнтақтағыш (Шредер)</li>
+                    <li style="margin-bottom: 0.5rem;">✅ Термопресс және балқыту пеші</li>
+                    <li style="margin-bottom: 0.5rem;">✅ Металл қалыптар (формалар)</li>
+                    <li style="margin-bottom: 0.5rem;">✅ Құм, бояғыштар және логистика</li>
+                </ul>
+                <div style="text-align: center; margin-top: 2rem;">
+                    <a href="#contact" class="btn btn-primary" onclick="document.getElementById('interest').value='Демеушілік'">Демеуші болу</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT / FORM SECTION -->
+        <section id="contact">
+            <div class="contact-container">
+                <div class="contact-info">
+                    <h2>Бізге қосылыңыз!</h2>
+                    <p>Жобаға қызығушылық танытсаңыз, серіктес болғыңыз келсе немесе өнімге тапсырыс бергіңіз келсе, төмендегі форманы толтырыңыз.</p>
+                    <p>Біз сізбен міндетті түрде хабарласамыз!</p>
+                    <div style="margin-top: 2rem;">
+                        <p>📍 Ақтау қаласы, Маңғыстау облысы</p>
+                        <p>📧 ecotile.aktau@example.com</p>
+                        <p>📞 +7 (777) 000 00 00</p>
+                    </div>
+                </div>
+
+                <div class="form-wrapper">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <label for="name">Аты-жөніңіз немесе Ұйым атауы *</label>
+                            <input type="text" id="name" name="name" required placeholder="Мысалы: №10 мектеп немесе Асхат">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="phone">WhatsApp нөмірі *</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="+7 (7XX) XXX XX XX">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="role">Кімсіз?</label>
+                            <select id="role" name="role" required>
+                                <option value="" disabled selected>Таңдаңыз...</option>
+                                <option value="Мектеп / Оқу орны">Мектеп / Оқу орны</option>
+                                <option value="ТК (Тұрғын үй кешені)">ТК (Тұрғын үй кешені)</option>
+                                <option value="Кафе / Мейрамхана">Кафе / Мейрамхана</option>
+                                <option value="Абаттандыру мекемесі">Абаттандыру мекемесі</option>
+                                <option value="Демеуші / Инвестор">Демеуші / Инвестор</option>
+                                <option value="Жеке тұлға / Басқа">Жеке тұлға / Басқа</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="interest">Қызығушылық бағыты</label>
+                            <select id="interest" name="interest" required>
+                                <option value="" disabled selected>Таңдаңыз...</option>
+                                <option value="Пилоттық жобаға қатысу">Пилоттық жобаға қатысу</option>
+                                <option value="Өнімді сатып алу">Өнімді сатып алу</option>
+                                <option value="Пластик жинау серіктестігі">Пластик жинау серіктестігі</option>
+                                <option value="Демеушілік / Қолдау">Демеушілік / Қолдау</option>
+                                <option value="Кездесу / Талқылау">Кездесу / Талқылау</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="msg">Қосымша хабарлама</label>
+                            <textarea id="msg" name="msg" rows="4" placeholder="Сұрақтарыңыз немесе ұсыныстарыңызды жазыңыз..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Өтінім жіберу</button>
+                        
+                        <button type="button" class="btn btn-copy" id="copyBtn">
+                            💬 WhatsApp мәтінін көшіру
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <a href="#hero" class="logo" style="justify-content: center; margin-bottom: 1rem;">EcoTile <span>Aktau</span></a>
+            <p>Пластикті құндылыққа айналдырамыз.</p>
+        </div>
+        <div class="nomination">
+            🌱 "Жасыл идея" номинациясы
+        </div>
+        <div class="copyright">
+            &copy; <span id="year"></span> EcoTile Aktau. Барлық құқықтар қорғалған.
+        </div>
+    </footer>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast">✅ Өтінім сәтті жіберілді! Жақында хабарласамыз.</div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // ==========================================
+        // 1. КОНСТАНТАЛАР МЕН АЙНЫМАЛЫЛАР
+        // ==========================================
+        // НАЗАР АУДАРЫҢЫЗ: Осы жерге Google Apps Script Web App URL қойыңыз.
+        const SHEET_WEBAPP_URL = ""; 
+
+        // ==========================================
+        // 2. UI ЖӘНЕ НАВИГАЦИЯ ЛОГИКАСЫ
+        // ==========================================
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        const hamburger = document.getElementById('hamburger');
+        const navLinks = document.getElementById('nav-links');
+        const links = document.querySelectorAll('#nav-links a');
+
+        // Мобильді мәзірді ашу/жабу
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Сылтеме басылғанда мәзірді жабу
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                hamburger.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+
+        // Toast хабарлама көрсету функциясы
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (message) toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // ==========================================
+        // 3. ФОРМА ЖӘНЕ ДЕРЕКТЕР ЛОГИКАСЫ
+        // ==========================================
+        const form = document.getElementById('contactForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const dataObj = Object.fromEntries(formData.entries());
+            dataObj.timestamp = new Date().toISOString();
+
+            submitBtn.textContent = 'Жіберілуде...';
+            submitBtn.disabled = true;
+
+            try {
+                if (SHEET_WEBAPP_URL && SHEET_WEBAPP_URL !== "") {
+                    // Google Sheets-ке жіберу (URL көрсетілген болса)
+                    const formBody = new URLSearchParams(formData).toString();
+                    
+                    await fetch(SHEET_WEBAPP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors', // CORS қатесін болдырмау үшін
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: formBody
+                    });
+                    
+                    showToast('✅ Өтінім Google Sheets-ке жіберілді!');
+                } else {
+                    // Fallback: LocalStorage-қа сақтау (URL бос болса)
+                    let leads = JSON.parse(localStorage.getItem('ecoTileLeads') || '[]');
+                    leads.push(dataObj);
+                    localStorage.setItem('ecoTileLeads', JSON.stringify(leads));
+                    console.log('Сақталған өтінімдер (Local):', leads);
+                    
+                    showToast('✅ Өтінім қабылданды! (Жергілікті жадқа сақталды)');
+                }
+                
+                form.reset();
+            } catch (error) {
+                console.error('Қате:', error);
+                showToast('❌ Қате кетті. Кейінірек көріңіз немесе WhatsApp-қа жазыңыз.');
+            } finally {
+                submitBtn.textContent = 'Өтінім жіберу';
+                submitBtn.disabled = false;
+            }
+        });
+
+        // ==========================================
+        // 4. WHATSAPP МӘТІНІН КӨШІРУ (CLIPBOARD)
+        // ==========================================
+        const copyBtn = document.getElementById('copyBtn');
+        
+        copyBtn.addEventListener('click', () => {
+            const name = document.getElementById('name').value.trim();
+            const role = document.getElementById('role').value;
+            const interest = document.getElementById('interest').value;
+            const msg = document.getElementById('msg').value.trim();
+
+            if (!name || !role || !interest) {
+                alert('Көшіру үшін алдымен "Аты-жөні", "Кімсіз" және "Қызығушылық" өрістерін толтырыңыз.');
+                return;
+            }
+
+            const waText = `Сәлеметсіз бе! Мен EcoTile Aktau жобасы бойынша жазып тұрмын.
+*Аты-жөнім/Ұйым:* ${name}
+*Статус:* ${role}
+*Қызығушылық бағыты:* ${interest}
+*Қосымша хабарлама:* ${msg ? msg : '-'}`;
+
+            // Clipboard API қолдану
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(waText).then(() => {
+                    showToast('📝 Мәтін көшірілді! Енді WhatsApp-қа қоя аласыз.');
+                }).catch(err => {
+                    fallbackCopyTextToClipboard(waText);
+                });
+            } else {
+                fallbackCopyTextToClipboard(waText);
+            }
+        });
+
+        // Clipboard API жұмыс істемесе (ескі браузерлер немесе http)
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.top = "0";
+            textArea.style.left = "0";
+            textArea.style.position = "fixed";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast('📝 Мәтін көшірілді! Енді WhatsApp-қа қоя аласыз.');
+                } else {
+                    showToast('❌ Көшіру мүмкін болмады.');
+                }
+            } catch (err) {
+                console.error('Fallback copy error', err);
+            }
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>
